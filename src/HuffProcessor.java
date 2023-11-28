@@ -163,7 +163,7 @@ public class HuffProcessor {
         return pq.remove();
     }
 
-    public void printTree(HuffNode root){
+    private void printTree(HuffNode root){
         if(root == null) return;
         if(root.left == null && root.right == null){
             System.out.println(root);
