@@ -66,7 +66,16 @@ public class HuffProcessor {
         HuffNode root = makeTree(in);
         //writing huffman encoding ID header
         out.writeBits(BITS_PER_INT, HUFF_TREE);
+        String[] encodings = new String[ALPH_SIZE + 1];
+        makeEncodings(root, "", encodings);
+        int bits = in.readBits(BITS_PER_WORD);
 
+        while(bits != -1){
+            String encoding = encodings[Integer.parseInt(String.valueOf(bits), 2)];
+            out.writeBits(encoding.length(), Integer.parseInt(encoding));
+            bits = in.readBits(BITS_PER_WORD);
+        }
+        out.writeBits(BITS_PER_INT, PSEUDO_EOF);
         out.close();
     }
 
@@ -163,37 +172,21 @@ public class HuffProcessor {
         }
     }
 
-    /**
-     * converts from base ten to binary
-     *
-     * @param input base ten integer
-     * @return binary integer represented as string
-     */
-
-    public static String BaseTenToBinary(int input){
-        StringBuilder bruh = new StringBuilder();
-        if(input%2==1){
-            bruh.append("1");
-        } else {
-            bruh.append("0");
+    private void makeEncodings(HuffNode root, String path, String[] encodings){
+        if(root == null) return;
+        if(root.left == null && root.right == null){
+            // TODO: check if this works if root.value is in binary
+//            encodings[root.value] = path;
+            encodings[Integer.parseInt(String.valueOf(root.value), 2)] = path;
+            return;
         }
-        convert(input, bruh);
-        return bruh.reverse().toString();
+        if(root.left != null){
+            makeEncodings(root.left, path + 0, encodings);
+        }
+        if(root.right != null){
+            makeEncodings(root.right, path + 1, encodings);
+        }
     }
 
-    public static int convert(int input, StringBuilder output){
-        int half = input/2;
 
-        if(input == 1){
-            return 1;
-
-        }
-        if(half%2==1){
-            output.append("1");
-        } else {
-            output.append("0");
-        }
-
-        return convert(half, output);
-    }
 }
