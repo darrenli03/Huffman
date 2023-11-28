@@ -163,4 +163,37 @@ public class HuffProcessor {
         }
     }
 
+    /**
+     * converts from base ten to binary
+     *
+     * @param input base ten integer
+     * @return binary integer represented as string
+     */
+
+    public static String BaseTenToBinary(int input){
+        StringBuilder bruh = new StringBuilder();
+        if(input%2==1){
+            bruh.append("1");
+        } else {
+            bruh.append("0");
+        }
+        convert(input, bruh);
+        return bruh.reverse().toString();
+    }
+
+    public static int convert(int input, StringBuilder output){
+        int half = input/2;
+
+        if(input == 1){
+            return 1;
+
+        }
+        if(half%2==1){
+            output.append("1");
+        } else {
+            output.append("0");
+        }
+
+        return convert(half, output);
+    }
 }
