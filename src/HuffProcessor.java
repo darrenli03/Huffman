@@ -68,14 +68,16 @@ public class HuffProcessor {
         out.writeBits(BITS_PER_INT, HUFF_TREE);
         String[] encodings = new String[ALPH_SIZE + 1];
         makeEncodings(root, "", encodings);
+
         int bits = in.readBits(BITS_PER_WORD);
 
         while(bits != -1){
-            String encoding = encodings[Integer.parseInt(String.valueOf(bits), 2)];
+//            String encoding = encodings[Integer.parseInt(String.valueOf(bits), 2)];
+            String encoding = encodings[bits];
             out.writeBits(encoding.length(), Integer.parseInt(encoding));
             bits = in.readBits(BITS_PER_WORD);
         }
-        out.writeBits(BITS_PER_INT, PSEUDO_EOF);
+        out.writeBits(BITS_PER_WORD, PSEUDO_EOF);
         out.close();
     }
 
@@ -131,8 +133,8 @@ public class HuffProcessor {
         TreeMap<Integer, Integer> freqs = new TreeMap<>();
         ArrayList<HuffNode> nodes = new ArrayList<>();
         int bits = in.readBits(BITS_PER_WORD);
-
-        while (bits != PSEUDO_EOF) {
+        //smh
+        while (bits != -1) {
             freqs.put(bits, freqs.getOrDefault(bits, 0) + 1);
             bits = in.readBits(BITS_PER_WORD);
         }
@@ -140,6 +142,7 @@ public class HuffProcessor {
         for (Map.Entry<Integer, Integer> entry : freqs.entrySet()) {
             nodes.add(new HuffNode(entry.getKey(), entry.getValue(), null, null));
         }
+        nodes.add(new HuffNode(PSEUDO_EOF, 1, null, null));
 
         //either of these two works, but actually not needed because priority queue sorts for us
 //        Collections.sort(nodes, Comparator.naturalOrder());
@@ -156,7 +159,17 @@ public class HuffProcessor {
         }
 
         in.reset();
+        printTree(pq.peek());
         return pq.remove();
+    }
+
+    public void printTree(HuffNode root){
+        if(root == null) return;
+        if(root.left == null && root.right == null){
+            System.out.println(root);
+        }
+        printTree(root.left);
+        printTree(root.right);
     }
 
     private HuffNode readTree(BitInputStream in) {
@@ -176,8 +189,8 @@ public class HuffProcessor {
         if(root == null) return;
         if(root.left == null && root.right == null){
             // TODO: check if this works if root.value is in binary
-//            encodings[root.value] = path;
-            encodings[Integer.parseInt(String.valueOf(root.value), 2)] = path;
+            encodings[root.value] = path;
+//            encodings[Integer.parseInt(String.valueOf(root.value), 2)] = path;
             return;
         }
         if(root.left != null){
