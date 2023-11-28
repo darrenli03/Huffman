@@ -1,4 +1,4 @@
-import java.util.PriorityQueue;
+import java.util.*;
 
 /**
  * Although this class has a history of several years,
@@ -65,11 +65,28 @@ public class HuffProcessor {
     public void compress(BitInputStream in, BitOutputStream out) {
 
 
-        // remove all this code when implementing compress
-        while (true) {
-            int val = in.readBits(BITS_PER_WORD);
-            if (val == -1) break;
-            out.writeBits(BITS_PER_WORD, val);
+        TreeMap<Integer, Integer> freqs = new TreeMap<>();
+        ArrayList<HuffNode> nodes = new ArrayList<>();
+        int bits = in.readBits(BITS_PER_WORD);
+        while(bits != PSEUDO_EOF){
+            freqs.put(bits, freqs.getOrDefault(bits, 0) + 1);
+            bits = in.readBits(BITS_PER_WORD);
+        }
+
+        for(Map.Entry<Integer, Integer> entry : freqs.entrySet()){
+            nodes.add(new HuffNode(entry.getKey(), entry.getValue(), null, null));
+        }
+
+        //either of these two works
+        Collections.sort(nodes, Comparator.naturalOrder());
+//        Collections.sort(nodes, (HuffNode a, HuffNode b) -> a.compareTo(b));
+
+        //TODO: implement tree building from ArrayList<HuffNode> nodes, which
+        // is a sorted arraylist of HuffNodes from smallest to largest weight
+        PriorityQueue<HuffNode> pq = new PriorityQueue<>();
+
+        while(nodes.size() > 1){
+
         }
         out.close();
     }
