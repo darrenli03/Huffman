@@ -63,31 +63,8 @@ public class HuffProcessor {
      * @param out Buffered bit stream writing to the output file.
      */
     public void compress(BitInputStream in, BitOutputStream out) {
+        HuffNode root = makeTree(in);
 
-
-        TreeMap<Integer, Integer> freqs = new TreeMap<>();
-        ArrayList<HuffNode> nodes = new ArrayList<>();
-        int bits = in.readBits(BITS_PER_WORD);
-        while(bits != PSEUDO_EOF){
-            freqs.put(bits, freqs.getOrDefault(bits, 0) + 1);
-            bits = in.readBits(BITS_PER_WORD);
-        }
-
-        for(Map.Entry<Integer, Integer> entry : freqs.entrySet()){
-            nodes.add(new HuffNode(entry.getKey(), entry.getValue(), null, null));
-        }
-
-        //either of these two works
-        Collections.sort(nodes, Comparator.naturalOrder());
-//        Collections.sort(nodes, (HuffNode a, HuffNode b) -> a.compareTo(b));
-
-        //TODO: implement tree building from ArrayList<HuffNode> nodes, which
-        // is a sorted arraylist of HuffNodes from smallest to largest weight
-        PriorityQueue<HuffNode> pq = new PriorityQueue<>();
-
-        while(nodes.size() > 1){
-
-        }
         out.close();
     }
 
@@ -105,18 +82,18 @@ public class HuffProcessor {
 
         HuffNode root = readTree(in);
         HuffNode current = root;
-        while(true){
+        while (true) {
             int nextBit = in.readBits(1);
-            if(nextBit == -1) throw new HuffException(("Bad input, no PSEUDO_EOF"));
+            if (nextBit == -1) throw new HuffException(("Bad input, no PSEUDO_EOF"));
 
-            if(nextBit == 1){
+            if (nextBit == 1) {
                 current = current.right;
-            } else if(nextBit == 0) {
+            } else if (nextBit == 0) {
                 current = current.left;
             }
 
-            if(current.left == null && current.right == null){
-                if(current.value == PSEUDO_EOF) break;
+            if (current.left == null && current.right == null) {
+                if (current.value == PSEUDO_EOF) break;
                 else {
                     out.writeBits(BITS_PER_WORD, current.value);
                     current = root;
@@ -137,6 +114,36 @@ public class HuffProcessor {
 		out.close();
 
  */
+    }
+
+    private HuffNode makeTree(BitInputStream in){
+        TreeMap<Integer, Integer> freqs = new TreeMap<>();
+        ArrayList<HuffNode> nodes = new ArrayList<>();
+        int bits = in.readBits(BITS_PER_WORD);
+        while (bits != PSEUDO_EOF) {
+            freqs.put(bits, freqs.getOrDefault(bits, 0) + 1);
+            bits = in.readBits(BITS_PER_WORD);
+        }
+
+        for (Map.Entry<Integer, Integer> entry : freqs.entrySet()) {
+            nodes.add(new HuffNode(entry.getKey(), entry.getValue(), null, null));
+        }
+
+        //either of these two works, but actually not needed because priority queue sorts for us
+//        Collections.sort(nodes, Comparator.naturalOrder());
+//        Collections.sort(nodes, (HuffNode a, HuffNode b) -> a.compareTo(b));
+
+        PriorityQueue<HuffNode> pq = new PriorityQueue<>(nodes);
+
+        while (pq.size() > 1) {
+            HuffNode a = pq.remove();
+            HuffNode b = pq.remove();
+
+            HuffNode bruh = new HuffNode(0, a.weight + b.weight, a, b);
+            pq.add(bruh);
+        }
+
+        return pq.remove();
     }
 
     private HuffNode readTree(BitInputStream in) {
