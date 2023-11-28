@@ -64,6 +64,8 @@ public class HuffProcessor {
      */
     public void compress(BitInputStream in, BitOutputStream out) {
         HuffNode root = makeTree(in);
+        //writing huffman encoding ID header
+        out.writeBits(BITS_PER_INT, HUFF_TREE);
 
         out.close();
     }
@@ -116,10 +118,11 @@ public class HuffProcessor {
  */
     }
 
-    private HuffNode makeTree(BitInputStream in){
+    private HuffNode makeTree(BitInputStream in) {
         TreeMap<Integer, Integer> freqs = new TreeMap<>();
         ArrayList<HuffNode> nodes = new ArrayList<>();
         int bits = in.readBits(BITS_PER_WORD);
+
         while (bits != PSEUDO_EOF) {
             freqs.put(bits, freqs.getOrDefault(bits, 0) + 1);
             bits = in.readBits(BITS_PER_WORD);
@@ -143,6 +146,7 @@ public class HuffProcessor {
             pq.add(bruh);
         }
 
+        in.reset();
         return pq.remove();
     }
 
