@@ -107,6 +107,7 @@ public class HuffProcessor {
             }
 
         }
+        out.close();
 
 
         // remove all code when implementing decompress
