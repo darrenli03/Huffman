@@ -74,7 +74,10 @@ public class HuffProcessor {
         while(bits != -1){
 //            String encoding = encodings[Integer.parseInt(String.valueOf(bits), 2)];
             String encoding = encodings[bits];
-            out.writeBits(encoding.length(), Integer.parseInt(encoding));
+            for(char c : encoding.toCharArray()){
+                out.writeBits(1, Character.getNumericValue(c));
+            }
+
             bits = in.readBits(BITS_PER_WORD);
         }
 
