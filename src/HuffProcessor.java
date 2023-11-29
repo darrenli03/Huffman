@@ -64,6 +64,7 @@ public class HuffProcessor {
      */
     public void compress(BitInputStream in, BitOutputStream out) {
         HuffNode root = makeTree(in);
+        System.out.println(in);
         //writing huffman encoding ID header
         out.writeBits(BITS_PER_INT, HUFF_TREE);
         String[] encodings = new String[ALPH_SIZE + 1];
@@ -83,6 +84,64 @@ public class HuffProcessor {
 
         out.writeBits(pseudo.length(), Integer.parseInt(pseudo, 2));
         out.close();
+    }
+
+    private HuffNode makeTree(BitInputStream in) {
+        TreeMap<Integer, Integer> freqs = new TreeMap<>();
+        ArrayList<HuffNode> nodes = new ArrayList<>();
+        int bits = in.readBits(BITS_PER_WORD);
+        while (bits != -1) {
+            freqs.put(bits, freqs.getOrDefault(bits, 0) + 1);
+            bits = in.readBits(BITS_PER_WORD);
+        }
+
+        for (Map.Entry<Integer, Integer> entry : freqs.entrySet()) {
+            nodes.add(new HuffNode(entry.getKey(), entry.getValue(), null, null));
+        }
+        nodes.add(new HuffNode(PSEUDO_EOF, 1, null, null));
+
+        //either of these two works, but actually not needed because priority queue sorts for us
+//        Collections.sort(nodes, Comparator.naturalOrder());
+//        Collections.sort(nodes, (HuffNode a, HuffNode b) -> a.compareTo(b));
+
+        PriorityQueue<HuffNode> pq = new PriorityQueue<>(nodes);
+
+        while (pq.size() > 1) {
+            HuffNode a = pq.remove();
+            HuffNode b = pq.remove();
+
+            HuffNode bruh = new HuffNode(0, a.weight + b.weight, a, b);
+            pq.add(bruh);
+        }
+
+        in.reset();
+//        printTree(pq.peek());
+        return pq.remove();
+    }
+
+    private void printTree(HuffNode root){
+        if(root == null) return;
+        if(root.left == null && root.right == null){
+            System.out.println(root);
+        }
+        printTree(root.left);
+        printTree(root.right);
+    }
+
+    private void makeEncodings(HuffNode root, String path, String[] encodings){
+
+        if(root.left == null && root.right == null){
+            // TODO: check if this works if root.value is in binary (should work as provided, but why)
+            encodings[root.value] = path;
+//            encodings[Integer.parseInt(String.valueOf(root.value), 2)] = path;
+            return;
+        }
+        if(root.left != null){
+            makeEncodings(root.left, path + 0, encodings);
+        }
+        if(root.right != null){
+            makeEncodings(root.right, path + 1, encodings);
+        }
     }
 
     /**
@@ -133,49 +192,6 @@ public class HuffProcessor {
  */
     }
 
-    private HuffNode makeTree(BitInputStream in) {
-        TreeMap<Integer, Integer> freqs = new TreeMap<>();
-        ArrayList<HuffNode> nodes = new ArrayList<>();
-        int bits = in.readBits(BITS_PER_WORD);
-        //smh
-        while (bits != -1) {
-            freqs.put(bits, freqs.getOrDefault(bits, 0) + 1);
-            bits = in.readBits(BITS_PER_WORD);
-        }
-
-        for (Map.Entry<Integer, Integer> entry : freqs.entrySet()) {
-            nodes.add(new HuffNode(entry.getKey(), entry.getValue(), null, null));
-        }
-        nodes.add(new HuffNode(PSEUDO_EOF, 1, null, null));
-
-        //either of these two works, but actually not needed because priority queue sorts for us
-//        Collections.sort(nodes, Comparator.naturalOrder());
-//        Collections.sort(nodes, (HuffNode a, HuffNode b) -> a.compareTo(b));
-
-        PriorityQueue<HuffNode> pq = new PriorityQueue<>(nodes);
-
-        while (pq.size() > 1) {
-            HuffNode a = pq.remove();
-            HuffNode b = pq.remove();
-
-            HuffNode bruh = new HuffNode(0, a.weight + b.weight, a, b);
-            pq.add(bruh);
-        }
-
-        in.reset();
-//        printTree(pq.peek());
-        return pq.remove();
-    }
-
-    private void printTree(HuffNode root){
-        if(root == null) return;
-        if(root.left == null && root.right == null){
-            System.out.println(root);
-        }
-        printTree(root.left);
-        printTree(root.right);
-    }
-
     private HuffNode readTree(BitInputStream in) {
         int bit = in.readBits(1);
         if (bit == -1) throw new HuffException("invalid magic number " + bit);
@@ -188,22 +204,4 @@ public class HuffProcessor {
             return new HuffNode(value, 0, null, null);
         }
     }
-
-    private void makeEncodings(HuffNode root, String path, String[] encodings){
-
-        if(root.left == null && root.right == null){
-            // TODO: check if this works if root.value is in binary
-            encodings[root.value] = path;
-//            encodings[Integer.parseInt(String.valueOf(root.value), 2)] = path;
-            return;
-        }
-        if(root.left != null){
-            makeEncodings(root.left, path + 0, encodings);
-        }
-        if(root.right != null){
-            makeEncodings(root.right, path + 1, encodings);
-        }
-    }
-
-
 }
