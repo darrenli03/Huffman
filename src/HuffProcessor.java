@@ -84,7 +84,10 @@ public class HuffProcessor {
         //TODO fix this bug, pseudo is a blank string for some reason but should not be
         String pseudo = encodings[PSEUDO_EOF];
 
-        out.writeBits(pseudo.length(), Integer.parseInt(pseudo,2));
+        for(char c : pseudo.toCharArray()){
+            out.writeBits(1, Character.getNumericValue(c));
+        }
+
         out.close();
     }
 
@@ -120,17 +123,18 @@ public class HuffProcessor {
 
             HuffNode bruh = new HuffNode(0, a.weight + b.weight, a, b);
             pq.add(bruh);
+            System.out.println(bruh.value);
         }
 
         in.reset();
-//        printTree(pq.peek());
+        printTree(pq.peek());
         return pq.remove();
     }
 
     private void printTree(HuffNode root){
         if(root == null) return;
         if(root.left == null && root.right == null){
-            System.out.println(root);
+            System.out.println(root.value);
         }
         printTree(root.left);
         printTree(root.right);
@@ -150,6 +154,7 @@ public class HuffProcessor {
         if(root.right != null){
             makeEncodings(root.right, path + 1, encodings);
         }
+        System.out.println(Arrays.toString(encodings));
     }
 
     /**
@@ -175,6 +180,7 @@ public class HuffProcessor {
             } else if (nextBit == 0) {
                 current = current.left;
             }
+            if(current == null) break;
 
             if (current.left == null && current.right == null) {
                 if (current.value == PSEUDO_EOF) break;
