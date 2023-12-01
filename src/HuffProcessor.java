@@ -214,7 +214,7 @@ public class HuffProcessor {
             HuffNode right = readTree(in);
             return new HuffNode(0, 0, left, right);
         } else {
-            var value = in.readBits(BITS_PER_WORD + 1);
+            int value = in.readBits(BITS_PER_WORD + 1);
             return new HuffNode(value, 0, null, null);
         }
     }
