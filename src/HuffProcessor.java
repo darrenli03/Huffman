@@ -132,7 +132,7 @@ public class HuffProcessor {
         }
 
         in.reset();
-        printTree(pq.peek());
+        //printTree(pq.peek());
         return pq.remove();
     }
 
