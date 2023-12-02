@@ -10,6 +10,7 @@ import java.util.*;
  *
  * @author Owen Astrachan
  * @author Darren Li
+ * @author Kevin Han
  * <p>
  * Revise
  */
@@ -66,8 +67,10 @@ public class HuffProcessor {
         HuffNode root = makeTree(in);
         //writing huffman encoding ID header
         out.writeBits(BITS_PER_INT, HUFF_TREE);
-        String[] encodings = new String[ALPH_SIZE + 1];
+        String[] encodings = new String[ALPH_SIZE];
         makeEncodings(root, "", encodings);
+
+        in.reset();
 
         int bits = in.readBits(BITS_PER_WORD);
 
@@ -84,9 +87,11 @@ public class HuffProcessor {
         //TODO fix this bug, pseudo is a blank string for some reason but should not be
         String pseudo = encodings[PSEUDO_EOF];
 
-        for(char c : pseudo.toCharArray()){
+        /*for(char c : pseudo.toCharArray()){
             out.writeBits(1, Character.getNumericValue(c));
-        }
+        }*/
+
+        out.writeBits(pseudo.length(), Integer.parseInt(pseudo,2));
 
         out.close();
     }
@@ -123,7 +128,7 @@ public class HuffProcessor {
 
             HuffNode bruh = new HuffNode(0, a.weight + b.weight, a, b);
             pq.add(bruh);
-            System.out.println(bruh.value);
+            //System.out.println(bruh.value);
         }
 
         in.reset();
@@ -149,10 +154,10 @@ public class HuffProcessor {
             return;
         }
         if(root.left != null){
-            makeEncodings(root.left, path + 0, encodings);
+            makeEncodings(root.left, path + "0", encodings);
         }
         if(root.right != null){
-            makeEncodings(root.right, path + 1, encodings);
+            makeEncodings(root.right, path + "1", encodings);
         }
         System.out.println(Arrays.toString(encodings));
     }
@@ -214,7 +219,7 @@ public class HuffProcessor {
             HuffNode right = readTree(in);
             return new HuffNode(0, 0, left, right);
         } else {
-            int value = in.readBits(BITS_PER_WORD + 1);
+            var value = in.readBits(BITS_PER_WORD + 1);
             return new HuffNode(value, 0, null, null);
         }
     }
