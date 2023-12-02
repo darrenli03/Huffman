@@ -67,7 +67,7 @@ public class HuffProcessor {
         HuffNode root = makeTree(in);
         //writing huffman encoding ID header
         out.writeBits(BITS_PER_INT, HUFF_TREE);
-        String[] encodings = new String[ALPH_SIZE + 2];
+        String[] encodings = new String[ALPH_SIZE + 1];
         makeEncodings(root, "", encodings);
 
         in.reset();
