@@ -159,7 +159,7 @@ public class HuffProcessor {
         if(root.right != null){
             makeEncodings(root.right, path + "1", encodings);
         }
-        System.out.println(Arrays.toString(encodings));
+        //System.out.println(Arrays.toString(encodings));
     }
 
     /**
