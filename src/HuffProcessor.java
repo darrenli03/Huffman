@@ -77,13 +77,13 @@ public class HuffProcessor {
             //int x is the base 10 integer that encoding[bits] represents
             int x = Integer.parseInt(encodings[bits], 2);
             out.writeBits(encodings[bits].length(), x);
-            System.out.println(x);
+            //system.out.println(x);
             bits = in.readBits(BITS_PER_WORD);
         }
 
         //TODO fix bug, PSEUDO_EOF is not detected when decompressing
         String pseudo = encodings[PSEUDO_EOF];
-        System.out.println(Integer.parseInt(pseudo, 2));
+        //system.out.println(Integer.parseInt(pseudo, 2));
         out.writeBits(pseudo.length(), Integer.parseInt(pseudo,2));
 
         out.close();
@@ -145,7 +145,7 @@ public class HuffProcessor {
 
             HuffNode bruh = new HuffNode(0, a.weight + b.weight, a, b);
             pq.add(bruh);
-            System.out.println(bruh.value);
+            //system.out.println(bruh.value);
         }
 
 //        in.reset();
@@ -156,7 +156,7 @@ public class HuffProcessor {
     private void printTree(HuffNode root){
         if(root == null) return;
         if(root.left == null && root.right == null){
-            System.out.println(root.value);
+            //system.out.println(root.value);
         }
         printTree(root.left);
         printTree(root.right);
@@ -177,7 +177,7 @@ public class HuffProcessor {
             makeEncodings(root.right, path + 1, encodings);
         }
 
-        System.out.println(Arrays.toString(encodings));
+        //system.out.println(Arrays.toString(encodings));
     }
 
     /**
