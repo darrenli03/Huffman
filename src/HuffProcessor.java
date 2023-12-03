@@ -69,7 +69,7 @@ public class HuffProcessor {
 
         //writing huffman encoding ID header
         out.writeBits(BITS_PER_INT, HUFF_TREE);
-
+        writeHeader(root, out);
         in.reset();
         int bits = in.readBits(BITS_PER_WORD);
         while(bits != -1){
@@ -77,17 +77,30 @@ public class HuffProcessor {
             //int x is the base 10 integer that encoding[bits] represents
             int x = Integer.parseInt(encodings[bits], 2);
             out.writeBits(encodings[bits].length(), x);
+            System.out.println(x);
             bits = in.readBits(BITS_PER_WORD);
         }
 
-        //TODO fix this bug, pseudo is a blank string for some reason but should not be
+        //TODO fix bug, PSEUDO_EOF is not detected when decompressing
         String pseudo = encodings[PSEUDO_EOF];
-
+        System.out.println(Integer.parseInt(pseudo, 2));
         out.writeBits(pseudo.length(), Integer.parseInt(pseudo,2));
 
         out.close();
     }
-
+    private void writeHeader(HuffNode node, BitOutputStream out)
+    {
+        if (node.right != null || node.left != null) {
+            out.writeBits(1, 0);
+            writeHeader(node.left, out);
+            writeHeader(node.right, out);
+        }
+        else
+        {
+            out.writeBits(1, 1);
+            out.writeBits(1 + BITS_PER_WORD, node.value);
+        }
+    }
     /**
      *
      * @param in BitInputStream input
@@ -108,7 +121,7 @@ public class HuffProcessor {
 //        }
 //        nodes.add(new HuffNode(PSEUDO_EOF, 1, null, null));
 
-        int[] counts = new int[256];
+        int[] counts = new int[ALPH_SIZE];
         while (true){
             int val = in.readBits(BITS_PER_WORD);
             if (val == -1) break;
